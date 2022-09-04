@@ -12,6 +12,13 @@ import (
 	"github.com/dolthub/dolt/go/store/prolly/tree"
 	"github.com/dolthub/dolt/go/store/types"
 	"net/url"
+	"os"
+)
+
+const (
+
+	// OSSCredsFileParam is a creation parameter that can be used to specify a credential file to use.
+	OSSCredsFileParam = "oss-creds-file"
 )
 
 // OSSFactory is a DBFactory implementation for creating GCS backed databases
@@ -19,7 +26,12 @@ type OSSFactory struct {
 }
 
 // CreateDB creates an GCS backed database
-func (fact OSSFactory) CreateDB(ctx context.Context, nbf *types.NomsBinFormat, urlObj *url.URL, params map[string]interface{}) (datas.Database, types.ValueReadWriter, tree.NodeStore, error) {
+func (fact OSSFactory) CreateDB(
+	ctx context.Context,
+	nbf *types.NomsBinFormat,
+	urlObj *url.URL,
+	params map[string]interface{},
+) (datas.Database, types.ValueReadWriter, tree.NodeStore, error) {
 	ossStore, err := fact.newChunkStore(ctx, nbf, urlObj, params)
 	if err != nil {
 		return nil, nil, nil, err
@@ -51,4 +63,14 @@ func (fact OSSFactory) newChunkStore(ctx context.Context, nbf *types.NomsBinForm
 	}
 	q := nbs.NewUnlimitedMemQuotaProvider()
 	return nbs.NewBSStore(ctx, nbf.VersionString(), bs, defaultMemTableSize, q)
+}
+
+func newOSSClientFromEnv() (*oss.Client, error) {
+
+	os.Getenv()
+	ossClient, err := oss.New(
+		"endpoint",
+		"accesskey",
+		"secret",
+	)
 }

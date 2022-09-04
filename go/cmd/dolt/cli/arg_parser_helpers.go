@@ -166,6 +166,8 @@ func CreateCloneArgParser() *argparser.ArgParser {
 	ap.SupportsValidatedString(dbfactory.AWSCredsTypeParam, "", "creds-type", "", argparser.ValidatorFromStrList(dbfactory.AWSCredsTypeParam, dbfactory.AWSCredTypes))
 	ap.SupportsString(dbfactory.AWSCredsFileParam, "", "file", "AWS credentials file.")
 	ap.SupportsString(dbfactory.AWSCredsProfile, "", "profile", "AWS profile to use.")
+
+	ap.SupportsString(dbfactory.OSSCredsFileParam, "", "file", "OSS credentials file")
 	return ap
 }
 
@@ -182,6 +184,8 @@ func CreateRemoteArgParser() *argparser.ArgParser {
 	ap.SupportsValidatedString(dbfactory.AWSCredsTypeParam, "", "creds-type", "", argparser.ValidatorFromStrList(dbfactory.AWSCredsTypeParam, dbfactory.AWSCredTypes))
 	ap.SupportsString(dbfactory.AWSCredsFileParam, "", "file", "AWS credentials file")
 	ap.SupportsString(dbfactory.AWSCredsProfile, "", "profile", "AWS profile to use")
+
+	ap.SupportsString(dbfactory.OSSCredsFileParam, "", "file", "OSS credentials file")
 	return ap
 }
 
@@ -274,6 +278,7 @@ func CreateVerifyConstraintsArgParser() *argparser.ArgParser {
 }
 
 var awsParams = []string{dbfactory.AWSRegionParam, dbfactory.AWSCredsTypeParam, dbfactory.AWSCredsFileParam, dbfactory.AWSCredsProfile}
+var ossParams = []string{dbfactory.OSSCredsFileParam}
 
 func ProcessBackupArgs(apr *argparser.ArgParseResults, scheme, backupUrl string) (map[string]string, error) {
 	params := map[string]string{}
@@ -300,6 +305,26 @@ func AddAWSParams(remoteUrl string, apr *argparser.ArgParseResults, params map[s
 	}
 
 	for _, p := range awsParams {
+		if val, ok := apr.GetValue(p); ok {
+			params[p] = val
+		}
+	}
+
+	return nil
+}
+
+func AddOSSParams(remoteUrl string, apr *argparser.ArgParseResults, params map[string]string) error {
+	isOSS := strings.HasPrefix(remoteUrl, "oss")
+
+	if !isOSS {
+		for _, p := range ossParams {
+			if _, ok := apr.GetValue(p); ok {
+				return fmt.Errorf("%s param is only valid for oss cloud remotes in the format oss://[oss-bucket]/database", p)
+			}
+		}
+	}
+
+	for _, p := range ossParams {
 		if val, ok := apr.GetValue(p); ok {
 			params[p] = val
 		}
